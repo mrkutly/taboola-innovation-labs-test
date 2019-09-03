@@ -1,24 +1,42 @@
 const trc = require('../db/trc');
 const crawler = require('../db/crawler');
+const Audit = require('./Audit');
 
 class Video {
-	constructor(props) {
-		this.id = props.id;
-		this.pub_video_id = props.pub_video_id;
-		this.publisher_name = props.name;
-		this.url = props.url;
-		this.thumbnail_url = props.thumbnail_url;
-		this.is_recommendable = props.is_recommendable;
-		this.publisher_id = props.publisher_id;
-		this.category = props.channel;
-		this.create_time = props.create_time;
-		this.uploader = props.uploader;
-		this.external_data = props.external_data;
+	constructor(params) {
+		this.id = params.id;
+		this.pub_video_id = params.pub_video_id;
+		this.publisher_name = params.name;
+		this.url = params.url;
+		this.thumbnail_url = params.thumbnail_url;
+		this.is_recommendable = params.is_recommendable;
+		this.publisher_id = params.publisher_id;
+		this.category = params.channel;
+		this.create_time = params.create_time;
+		this.uploader = params.uploader;
+		this.external_data = params.external_data;
 	}
 
 	async getCrawlerInfo() {
 		const res = await crawler.query(
-			`SELECT * FROM crawler.audit WHERE publisher = ? AND pub_item_id = ?`,
+			`SELECT id,
+				first_successful_processing,
+				last_successful_processing,
+				last_upload,
+				error_message,
+				nonrecommendable_reason,
+				create_time,
+				update_time,
+				first_fe_reported_time,
+				first_queue_time,
+				first_attempted_crawl_time,
+				first_fe_reported_loaded_time,
+				source,
+				last_crawl_reason,
+				first_nonrecommendable_time 
+			FROM crawler.audit 
+			WHERE publisher = ? 
+			AND pub_item_id = ?`,
 			[this.publisher_name, this.pub_video_id]
 		);
 
@@ -27,7 +45,7 @@ class Video {
 	}
 
 	setCrawlerAuditData(crawlerAuditData) {
-		this.crawlerAuditData = crawlerAuditData;
+		this.audit = new Audit(crawlerAuditData);
 	}
 
 	static async fromPubId(publisher_id, date_before) {
