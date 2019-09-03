@@ -65,15 +65,15 @@ class Video {
 			[publisher_id, date_before]
 		);
 
-		return results.map(res => new Video(res));
+		const videos = Promise.all(
+			results.map(async res => {
+				const video = new Video(res);
+				await video.getCrawlerInfo();
+				return video;
+			})
+		);
+		return videos;
 	}
 }
 
-async function print() {
-	const videos = await Video.fromPubId(1009903);
-	await videos[0].getCrawlerInfo();
-	console.log(videos[0]);
-	return videos[0];
-}
-
-print();
+module.exports = Video;
